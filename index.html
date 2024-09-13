@@ -53,40 +53,49 @@
         <h2>Upload Your File</h2>
         <input type="file" id="fileInput" />
         <br />
-        <button onclick="uploadFile()">Upload</button>
+        <button onclick="readBlob()">Read File</button>
         <p id="status"></p>
+        <pre id="fileContent"></pre>
     </div>
 
     <script>
-        async function uploadFile() {
+        let noise_model = "";
+
+        function readBlob() {
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
             const status = document.getElementById('status');
+            const fileContent = document.getElementById('fileContent');
 
             if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
+                // Create a Blob from the selected file
+                const blob = new Blob([file], { type: file.type });
 
-                try {
-                    const response = await fetch('/upload', {
-                        method: 'POST',
-                        body: formData,
-                    });
+                // Use FileReader to read the Blob as text
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const fileData = e.target.result;
+                    //fileContent.textContent = fileData;  // Output the content as a string
+                    status.textContent = 'File read successfully using Blob!';
+                    setNoiseModel(fileData); // Pass the file data to setNoiseModel function
+                };
+                reader.onerror = function (e) {
+                    status.textContent = 'Error reading file!';
+                };
 
-                    if (response.ok) {
-                        const result = await response.json();
-                        status.textContent = 'File uploaded successfully: ' + result.filename;
-                    } else {
-                        status.textContent = 'Upload failed!';
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    status.textContent = 'Error during upload!';
-                }
+                // Read the Blob's contents as text
+                reader.readAsText(blob);
             } else {
                 status.textContent = 'No file selected!';
             }
         }
+
+        function setNoiseModel(file_data) {
+            noise_model = file_data;
+            fileContent.textContent = file_data;
+            console.log('Noise model set:', noise_model); // Just to verify it's working
+        }
+
     </script>
 </body>
 
